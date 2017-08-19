@@ -16,7 +16,6 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessagingException;
-import org.springframework.util.SocketUtils;
 
 /**
  * https://www.javacodegeeks.com/2014/05/spring-integration-4-0-a-complete-xml-free-example.html
@@ -32,7 +31,7 @@ import org.springframework.util.SocketUtils;
 @EnableIntegration
 public class IntegrationConfiguration {
 
-	private final int port = SocketUtils.findAvailableTcpPort();
+	private final int port = 1337;//SocketUtils.findAvailableTcpPort();
 
 	
 	
@@ -62,6 +61,7 @@ public class IntegrationConfiguration {
 		TcpInboundGateway inGate = new TcpInboundGateway();
 		inGate.setConnectionFactory(connectionFactory);
 		inGate.setRequestChannel(requestChannel());
+		inGate.setReplyChannel(outChannel());
 		return inGate;
 	}
 	
@@ -85,6 +85,12 @@ public class IntegrationConfiguration {
     public MessageChannel requestChannel() {
         return new DirectChannel(); // p2p channel
     }
+
+    @Bean
+    public MessageChannel outChannel() {
+        return new DirectChannel(); // p2p channel
+    }
+    
     
 //    @Bean
 //    @Description("Sends web service responses to both the client and a database filter")
@@ -112,7 +118,8 @@ public class IntegrationConfiguration {
 
     }    
 
-	@Transformer(inputChannel="requestChannel")
+//	@Transformer(inputChannel="requestChannel")
+	@Transformer(inputChannel="requestChannel", outputChannel="outChannel")
 	public String convert(byte[] bytes) {
 		
 		String result = new String(bytes);
@@ -122,6 +129,23 @@ public class IntegrationConfiguration {
 		return result;
 		
 	}    
+
+//	@Transformer(inputChannel="requestChannel", outputChannel="outChannel")
+//	public String pass(String str) {
+//		
+//		return str;
+//		
+//	} 
+	
+//	@Transformer(inputChannel="outChannel")
+//	public String toConsole(String msg) {
+//		
+//		System.out.println("toConsole: " + msg);
+//		
+//		return msg;
+//		
+//	}    
+	
     
 //	@MessageEndpoint
 //	public static class Echo {
