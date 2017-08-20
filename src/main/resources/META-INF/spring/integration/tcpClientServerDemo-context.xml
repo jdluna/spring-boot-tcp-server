@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns="http://www.springframework.org/schema/integration"
+	xmlns:ip="http://www.springframework.org/schema/integration/ip"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+		http://www.springframework.org/schema/integration/ip http://www.springframework.org/schema/integration/ip/spring-integration-ip.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd">
+
+	<beans:description>
+		Uses conversion service and collaborating channel adapters.
+	</beans:description>
+
+	<context:property-placeholder />
+
+	<converter>
+		<beans:bean class="com.samsonan.tcpserver.ByteArrayToStringConverter" />
+	</converter>
+
+	<!-- Server side -->
+
+	<ip:tcp-connection-factory id="server"
+		type="server"
+		port="1337"
+		using-nio="true" />
+
+	<ip:tcp-inbound-channel-adapter id="inAdapter.server"
+		channel="toSA"
+		connection-factory="server" />
+
+	<!-- dataType attribute invokes the conversion service -->
+	<channel id="toSA" datatype="java.lang.String" />
+
+	<service-activator input-channel="toSA"
+					   output-channel="toObAdapter"
+					   ref="echoService"
+					   method="test" />
+
+	<beans:bean id="echoService"
+		  class="com.samsonan.tcpserver.EchoService" />
+
+	<channel id="toObAdapter" />
+
+	<ip:tcp-outbound-channel-adapter id="outAdapter.server"
+		channel="toObAdapter"
+		connection-factory="server" />
+
+</beans:beans>
